@@ -258,12 +258,124 @@ class MaxMarketingApp:
 
     # --- PLACEHOLDERS PARA AS FUNCIONALIDADES ---
     
+    # ==============================================================================
+    # 6. FUNCIONALIDADES DO APP
+    # ==============================================================================
+
     def exibir_criador_de_posts(self):
-        """Página para criar posts individuais para diversas plataformas."""
+        """
+        Página para criar posts individuais para diversas plataformas.
+        Implementa o conceito de "prompt invertido" para coletar detalhes do post.
+        """
         st.header("✍️ Criador de Posts")
-        st.info("Funcionalidade em desenvolvimento. Aqui você poderá criar posts para todas as suas redes.")
-        # Lógica para menu suspenso, prompt invertido específico do post, etc.
-        pass
+        st.markdown("Preencha o briefing abaixo para que o Max crie o post perfeito para você.")
+
+        # Carrega os prompts do nosso arquivo de configuração JSON
+        prompts = carregar_prompts_config()
+        if not prompts:
+            st.error("Não foi possível carregar as configurações de prompt.")
+            return
+
+        # Define as opções de canais/plataformas
+        canais_disponiveis = [
+            'Instagram', 'Facebook', 'Google Ads (Pesquisa)', 
+            'YouTube (Shorts)', 'TikTok', 'LinkedIn', 'Marketplace (OLX, etc.)'
+        ]
+
+        # Inicia o formulário para evitar que a página recarregue a cada seleção
+        with st.form(key="post_briefing_form"):
+            st.subheader("1. Definições do Post")
+            
+            # Seleção de canal e tipo de post
+            canal_selecionado = st.selectbox("Para qual canal é este post?", options=canais_disponiveis)
+            
+            tipo_post = ""
+            if canal_selecionado in ['Instagram', 'Facebook']:
+                tipo_post = st.radio("Qual o formato?", ['Post de Feed (Imagem/Carrossel)', 'Reels', 'Stories'], horizontal=True)
+            
+            st.subheader("2. Conteúdo e Objetivo (Prompt Invertido)")
+            
+            objetivo_post = st.text_input(
+                "Qual o objetivo principal DESTE post?", 
+                placeholder="Ex: Anunciar uma promoção, gerar cliques no site, aumentar engajamento..."
+            )
+            produto_servico_foco = st.text_input(
+                "Qual produto ou serviço específico você quer promover?",
+                help="Seja específico! Ex: 'Sapato de couro modelo Verona, cor marrom'."
+            )
+            mensagem_central = st.text_area(
+                "Qual é a mensagem central que você quer comunicar?",
+                placeholder="Ex: Nossa promoção de Dia dos Pais está com 50% de desconto em todos os sapatos."
+            )
+            cta_especifica = st.text_input(
+                "Qual a Chamada para Ação (CTA)?",
+                placeholder="Ex: 'Clique no link da bio', 'Comente EU QUERO', 'Visite nossa loja na Rua X'."
+            )
+
+            # Botão para enviar o formulário e gerar o conteúdo
+            submitted = st.form_submit_button("✨ Gerar Post com Max IA")
+
+        # --- Lógica de Geração e Exibição do Resultado ---
+        if submitted:
+            with st.spinner("Aguarde... Max está combinando sua estratégia com criatividade para gerar o post ideal! 🚀"):
+                try:
+                    # Passo 1: Buscar o briefing geral da empresa que salvamos no Firestore
+                    # (Vamos criar essa função de busca depois, por enquanto é um placeholder)
+                    # company_data = buscar_dados_empresa_do_firestore(self.db, st.session_state.get('user_uid'))
+                    
+                    # Passo 2: Montar o prompt final para a IA
+                    # (Aqui combinamos o briefing da empresa com o briefing específico deste post)
+                    # prompt_final = montar_prompt_para_post(
+                    #     prompts, company_data, canal_selecionado, tipo_post, 
+                    #     objetivo_post, produto_servico_foco, mensagem_central, cta_especifica
+                    # )
+                    
+                    # Passo 3: Chamar a IA para gerar o conteúdo
+                    # (Usamos o 'llm' que inicializamos na Parte 4)
+                    # resultado_ia = self.llm.invoke(prompt_final)
+                    
+                    # --- SIMULAÇÃO DO RESULTADO (para fins de desenvolvimento visual) ---
+                    st.session_state['post_gerado'] = """
+**Título Impactante:** 👞 Seu Pai Merece o Melhor. E o Melhor Está com 50% OFF!
+
+**Texto do Post:**
+O presente perfeito para o Dia dos Pais está aqui na Sapataria do Zé! 🎁
+
+Toda a nossa linha de sapatos de couro artesanais, incluindo o nosso campeão de vendas Verona, está com um desconto incrível de 50%. Qualidade, conforto e durabilidade que seu pai vai sentir a cada passo.
+
+Não deixe para a última hora! A promoção é válida somente até sábado.
+
+**Sugestão de Imagem/Vídeo:**
+Um vídeo curto e elegante mostrando os detalhes do sapato de couro Verona, com foco na costura e no acabamento. O vídeo termina com o sapato sendo colocado em uma bela caixa de presente.
+
+**Chamada para Ação (CTA):**
+Visite nossa loja na Rua X e garanta o presente do seu paizão!
+
+**Hashtags Estratégicas:**
+#diadospais #presenteparaopai #sapatomasculino #sapatodecouro #juizdefora #promocao #modamasculina
+                    """
+                    # --- FIM DA SIMULAÇÃO ---
+
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao gerar o conteúdo: {e}")
+
+        # Se um post foi gerado, exibe na tela
+        if 'post_gerado' in st.session_state and st.session_state.post_gerado:
+            st.divider()
+            st.subheader("✅ Conteúdo Gerado pelo Max:")
+            st.markdown(st.session_state.post_gerado)
+
+            st.subheader("Refinamento e Ações")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.button("Salvar no Histórico", type="primary")
+            with col2:
+                st.download_button("Baixar como .txt", st.session_state.post_gerado, file_name="post_max_marketing.txt")
+            
+            refinamento = st.text_input("Gostou? Peça um ajuste para o Max:", placeholder="Ex: 'Deixe o texto mais curto', 'Use mais emojis', 'Crie outra opção de título'")
+            if st.button("Refinar Texto"):
+                # Aqui entraria a lógica para refinar o texto, enviando um novo prompt para a IA
+                st.info("Função de refinamento em desenvolvimento.")
 
     def exibir_criador_de_campanhas(self):
         """Página para criar campanhas completas com múltiplos criativos."""
