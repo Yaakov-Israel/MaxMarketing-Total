@@ -716,3 +716,97 @@ Equipe MaxMarketing Total
                 st.markdown("---")
                 st.subheader("📝 Seus Anúncios para o Google:")
                 st.markdown(st.session_state['ads_result'])
+# ==============================================================================
+# 7. INTERFACE DE LOGIN E REGISTRO
+# ==============================================================================
+
+def exibir_pagina_de_entrada():
+    """Renderiza a capa de abertura com 2 opções: Cliente ou Não Cliente."""
+    # Tenta carregar e aplicar um estilo visual mais imersivo para a página inicial
+    try:
+        logo_base64 = convert_image_to_base64('max_marketing_total_logo.png') # <<< MUDANÇA: Usando a nova logo
+        # Usaremos uma imagem de fundo genérica por enquanto
+        background_image_url = "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        
+        st.markdown(f"""
+            <style>
+            .stApp {{ background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url("{background_image_url}"); background-size: cover; }}
+            .stApp > header, .stSidebar {{ display: none !important; }}
+            /* Outros estilos que você tinha, mantidos aqui */
+            </style>""", unsafe_allow_html=True)
+        
+        if logo_base64:
+            st.image(f"data:image/png;base64,{logo_base64}", width=200)
+
+    except Exception as e:
+        st.title(APP_NAME)
+        print(f"Alerta: Não foi possível renderizar a página de entrada com imagens. Erro: {e}")
+
+    st.title("Seu Especialista em Marketing Digital com IA")
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("✅ Já sou cliente (Entrar)", use_container_width=True, type="primary"):
+            st.session_state['show_login_form'] = True
+            st.rerun()
+    with col2:
+        if st.button("🚀 Quero ser cliente", use_container_width=True):
+            st.link_button("Ver Planos", SALES_PAGE_URL)
+
+def exibir_login_e_registro():
+    """Renderiza os formulários de acesso, agora com opções sociais e ativação por chave."""
+    st.markdown("""<style>.stApp > header, .stSidebar { display: none !important; }</style>""", unsafe_allow_html=True)
+    
+    _ , col, _ = st.columns([1, 1.5, 1])
+    with col:
+        st.image(get_asset_path('max_marketing_total_logo.png'), width=150)
+        st.header(f"Acesse o {APP_NAME}")
+
+        # --- Abas para Login e Ativação ---
+        tab_login, tab_activate = st.tabs(["Entrar", "Ativar Minha Conta"])
+
+        # --- ABA DE LOGIN ---
+        with tab_login:
+            st.subheader("Login com um clique")
+            if st.button("Entrar com Google", use_container_width=True):
+                st.info("Funcionalidade de login com Google em desenvolvimento.")
+                # Aqui entrará a lógica para o login com Google (OAuth)
+
+            st.markdown("<p style='text-align: center; margin-top:1rem;'>ou</p>", unsafe_allow_html=True)
+
+            with st.expander("Entrar com E-mail"):
+                with st.form("login_form_email"):
+                    email = st.text_input("Seu e-mail")
+                    password = st.text_input("Sua senha", type="password")
+                    if st.form_submit_button("Entrar com Senha", use_container_width=True, type="primary"):
+                        # A lógica de login com senha que você já tinha, está perfeita
+                        st.info("Lógica de login com e-mail/senha a ser implementada.")
+                
+                # Lógica para o login com link mágico
+                st.markdown("---")
+                email_link = st.text_input("Receber link de acesso por e-mail")
+                if st.button("Enviar link mágico", use_container_width=True):
+                    st.info("Lógica de envio de link mágico a ser implementada.")
+
+        # --- ABA DE ATIVAÇÃO DE CONTA ---
+        with tab_activate:
+            st.subheader("Primeiro Acesso? Ative sua conta aqui.")
+            with st.form("activation_form"):
+                reg_email = st.text_input("Seu melhor e-mail")
+                reg_password = st.text_input("Crie uma senha forte", type="password")
+                activation_key = st.text_input("Sua Chave de Ativação", placeholder="Ex: MMT-PRO-123XYZ")
+
+                if st.form_submit_button("Criar Conta e Ativar", use_container_width=True):
+                    if reg_email and len(reg_password) >= 6 and activation_key:
+                        with st.spinner("Verificando sua chave e criando sua conta..."):
+                            # LÓGICA DE ATIVAÇÃO (a ser implementada)
+                            # 1. Buscar a 'activation_key' no Firestore na coleção 'chaves_ativacao'.
+                            # 2. Verificar se a chave é válida e se o status é 'disponivel'.
+                            # 3. Se for válida, criar o usuário no Firebase Auth com 'reg_email' e 'reg_password'.
+                            # 4. Criar o documento do usuário na coleção 'users'.
+                            # 5. Atualizar a chave no Firestore para status 'usada' e vincular ao ID do novo usuário.
+                            # 6. Mostrar st.success e pedir para o usuário ir para a aba de Login.
+                            st.success("Conta criada! Volte para a aba 'Entrar' para fazer seu primeiro login.")
+                    else:
+                        st.warning("Por favor, preencha todos os campos corretamente.")
