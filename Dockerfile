@@ -35,4 +35,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Etapa 8: O comando para iniciar seu aplicativo quando o contêiner rodar.
 # Usamos "server.headless=true" para rodar corretamente em um ambiente de nuvem.
 # "server.address=0.0.0.0" permite que o serviço seja acessado de fora do contêiner.
-CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
