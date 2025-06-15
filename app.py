@@ -378,10 +378,116 @@ Visite nossa loja na Rua X e garanta o presente do seu paizão!
                 st.info("Função de refinamento em desenvolvimento.")
 
     def exibir_criador_de_campanhas(self):
-        """Página para criar campanhas completas com múltiplos criativos."""
-        st.header("📣 Criador de Campanhas")
-        st.info("Funcionalidade em desenvolvimento. Crie campanhas integradas para atingir seus objetivos.")
-        pass
+        """
+        Página para criar campanhas de marketing completas, com múltiplos criativos
+        para diversas plataformas, baseadas em um único objetivo estratégico.
+        """
+        st.header("📣 Criador de Campanhas Completas")
+        st.markdown("Defina a estratégia da sua campanha e deixe o Max criar todas as peças de comunicação para você de forma integrada.")
+
+        # Define as opções de canais para a campanha
+        canais_disponiveis = [
+            'Instagram', 'Facebook', 'E-mail Marketing', 'Google Ads (Pesquisa)', 'WhatsApp'
+        ]
+
+        with st.form(key="campaign_briefing_form"):
+            st.subheader("1. Estratégia da Campanha")
+            
+            nome_campanha = st.text_input(
+                "Qual o nome ou tema da sua campanha?", 
+                placeholder="Ex: Lançamento Coleção de Inverno, Promoção de Aniversário da Loja"
+            )
+            
+            objetivo_campanha = st.selectbox(
+                "Qual o objetivo principal DESTA CAMPANHA?",
+                options=[
+                    'Gerar vendas de um produto/serviço específico',
+                    'Aumentar o reconhecimento da marca (branding)',
+                    'Capturar leads (e-mails, contatos de WhatsApp)',
+                    'Promover um evento ou uma data especial'
+                ]
+            )
+            
+            oferta_central = st.text_area(
+                "Qual é a oferta principal ou mensagem-chave da campanha?",
+                placeholder="Ex: 'Toda a linha de inverno com 20% de desconto e frete grátis', 'Inscreva-se na nossa masterclass gratuita sobre marketing digital'."
+            )
+            
+            st.subheader("2. Canais e Criativos")
+            
+            canais_selecionados = st.multiselect(
+                "Em quais canais esta campanha será veiculada?",
+                options=canais_disponiveis,
+                help="O Max irá gerar um pacote de conteúdo apropriado para cada canal selecionado."
+            )
+
+            # Botão para enviar o formulário
+            submitted = st.form_submit_button("🚀 Gerar Pacote da Campanha")
+
+        # --- Lógica de Geração e Exibição do Resultado ---
+        if submitted:
+            if not nome_campanha or not oferta_central or not canais_selecionados:
+                st.warning("Por favor, preencha o nome, a oferta e selecione pelo menos um canal para a campanha.")
+            else:
+                with st.spinner(f"Orquestrando a campanha '{nome_campanha}'... O Max está preparando um pacote completo de criativos! 🧠✨"):
+                    # Aqui entraria a lógica complexa para montar o prompt,
+                    # chamar a IA e salvar o resultado.
+                    # Por enquanto, vamos simular o resultado para fins visuais.
+                    
+                    # --- SIMULAÇÃO DO RESULTADO ---
+                    st.session_state['campanha_gerada'] = {
+                        "nome": nome_campanha,
+                        "objetivo": objetivo_campanha,
+                        "oferta": oferta_central,
+                        "pacote_criativos": """
+### 📣 Pacote para Instagram
+**Post para Feed (Sugestão 1):**
+- **Texto:** Prepare-se para o inverno com estilo! ❄️ Nossa nova coleção acaba de chegar com 20% de DESCONTO e frete grátis. Jaquetas, botas e tudo que você precisa para ficar aquecido e elegante. Toque no link da bio para conferir!
+- **Imagem:** Um carrossel de fotos com modelos vestindo as peças da nova coleção em um cenário de inverno.
+
+**Ideia para Stories (Sequência de 3):**
+1.  **Story 1 (Enquete):** Foto de duas peças da coleção. "Qual combina mais com você? 🤔"
+2.  **Story 2 (Vídeo):** Vídeo curto mostrando os detalhes de uma jaqueta. Texto sobreposto: "Qualidade nos mínimos detalhes."
+3.  **Story 3 (CTA):** Print da página da promoção no site. Sticker de "Clique Aqui" com o link direto.
+
+---
+### 📣 Pacote para E-mail Marketing
+**Assunto:** ❄️ Chegou o Inverno! E sua nova coleção favorita também (com 20% OFF).
+**Corpo do E-mail:**
+Olá [Nome do Cliente],
+
+O frio chegou e com ele a oportunidade de renovar seu guarda-roupa com peças incríveis.
+
+Nossa Nova Coleção de Inverno foi pensada para quem não abre mão de estilo e conforto. E para celebrar, estamos oferecendo **20% de desconto em todas as peças + frete grátis** por tempo limitado.
+
+[Botão: Ver a Coleção Agora]
+
+Não perca essa chance de se aquecer com elegância.
+
+Abraços,
+Equipe MaxMarketing Total
+"""
+                    }
+                    # --- FIM DA SIMULAÇÃO ---
+
+        # Se uma campanha foi gerada, exibe na tela
+        if 'campanha_gerada' in st.session_state:
+            st.divider()
+            st.subheader(f"✅ Pacote de Criativos para a Campanha: '{st.session_state['campanha_gerada']['nome']}'")
+            
+            # Usamos um expander para não poluir a tela, o usuário abre se quiser ver os detalhes
+            with st.expander("Ver pacote de criativos gerados", expanded=True):
+                st.markdown(st.session_state['campanha_gerada']['pacote_criativos'])
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.button("Salvar Campanha no Histórico", type="primary")
+            with col2:
+                st.download_button(
+                    "Baixar como .txt", 
+                    st.session_state['campanha_gerada']['pacote_criativos'], 
+                    file_name=f"campanha_{st.session_state['campanha_gerada']['nome']}.txt"
+                )
 
     def exibir_construtor_de_ofertas(self): # <<< NOVO PLACEHOLDER ADICIONADO
         """Página para criar um catálogo de ofertas/produtos."""
