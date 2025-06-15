@@ -102,3 +102,92 @@ def convert_image_to_base64(image_name):
         return None
 
 st.success("Funções auxiliares carregadas com sucesso!")
+# ==============================================================================
+# 4. INICIALIZAÇÃO DE SERVIÇOS E AUTENTICAÇÃO
+# ==============================================================================
+
+@st.cache_resource
+def initialize_firebase_services():
+    """
+    Inicializa e retorna os clientes do Firebase para autenticação e banco de dados.
+    Usa @st.cache_resource para garantir que a conexão seja estabelecida apenas uma vez.
+    """
+    try:
+        # Carrega as credenciais do arquivo secrets.toml
+        firebase_config = dict(st.secrets["firebase_config"])
+        service_account_creds = dict(st.secrets["gcp_service_account"])
+
+        # Inicializa o Pyrebase para autenticação do lado do cliente (login, registro)
+        firebase_client = pyrebase.initialize_app(firebase_config)
+        pb_auth_client = firebase_client.auth()
+
+        # Inicializa o Firebase Admin SDK para operações de backend (acesso ao Firestore)
+        # A verificação "if not firebase_admin._apps" impede a reinicialização do app.
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(service_account_creds)
+            firebase_admin.initialize_app(cred)
+        
+        firestore_db_client = firebase_admin_firestore.client()
+        
+        return pb_auth_client, firestore_db_client
+
+    except Exception as e:
+        st.error(f"Erro crítico na inicialização do Firebase: {e}")
+        st.info("Verifique se as seções [firebase_config] e [gcp_service_account] estão corretas no seu arquivo secrets.toml.")
+        st.stop()
+        return None, None
+
+# Inicializa os serviços e os armazena em variáveis globais
+pb_auth_client, firestore_db = initialize_firebase_services()
+
+@st.cache_resource
+def get_llm():
+    """Inicializa e retorna o cliente do modelo de linguagem (Gemini)."""
+    try:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        # Configura o LLM com a chave e uma temperatura para respostas criativas
+        return ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest", google_api_key=api_key, temperature=0.75)
+    except Exception as e:
+        st.error(f"Erro crítico ao inicializar a IA do Google: {e}")
+        st.info("Verifique se a GOOGLE_API_KEY está correta no seu arquivo secrets.toml.")
+        st.stop()
+        return None
+
+# Inicializa o LLM
+llm = get_llm()
+
+def get_current_user_status():
+    """
+    Verifica se existe uma sessão de usuário válida e atualiza o estado do aplicativo.
+    Retorna o status de autenticação e as informações básicas do usuário.
+    """
+    # Define uma chave única para os dados da sessão do usuário
+    session_key = f'{APP_KEY_SUFFIX}_user_session_data'
+    
+    # Verifica se os dados da sessão existem
+    if 'user_session' in st.session_state and st.session_state.user_session:
+        try:
+            # Tenta usar o token da sessão para obter informações da conta.
+            # Isso valida se o token ainda é válido.
+            user_info = pb_auth_client.get_account_info(st.session_state.user_session['idToken'])
+            
+            # Se for bem-sucedido, extrai os dados do usuário
+            uid = user_info['users'][0]['localId']
+            email = user_info['users'][0].get('email')
+            
+            # Atualiza o estado da sessão com os dados confirmados
+            st.session_state.update({
+                'user_is_authenticated': True,
+                'user_uid': uid,
+                'user_email': email
+            })
+            return True, uid, email
+            
+        except Exception:
+            # Se o token for inválido/expirado, limpa a sessão e desloga o usuário.
+            st.session_state.clear()
+            return False, None, None
+            
+    return False, None, None
+
+st.success("Serviços de autenticação e IA carregados com sucesso!")
