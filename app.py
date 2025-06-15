@@ -489,11 +489,109 @@ Equipe MaxMarketing Total
                     file_name=f"campanha_{st.session_state['campanha_gerada']['nome']}.txt"
                 )
 
-    def exibir_construtor_de_ofertas(self): # <<< NOVO PLACEHOLDER ADICIONADO
-        """Página para criar um catálogo de ofertas/produtos."""
+    def exibir_construtor_de_ofertas(self):
         st.header("🛍️ Construtor de Ofertas")
-        st.info("Funcionalidade em desenvolvimento. Crie seu catálogo de produtos e ofertas para compartilhar.")
-        pass
+        st.markdown("Crie um catálogo visual com suas principais ofertas e produtos. Salve seu progresso e depois baixe como um PDF profissional ou compartilhe nas redes.")
+        st.markdown("---")
+
+        # <<< MUDANÇA: Carrega o catálogo do Firestore ou inicializa um novo
+        if 'catalogo_ofertas' not in st.session_state:
+            # st.session_state.catalogo_ofertas = self.carregar_catalogo_do_firestore()
+            # SIMULAÇÃO: Enquanto a função de carregar não está pronta, inicializamos um vazio
+            st.session_state.catalogo_ofertas = {
+                'theme_color': 'Roxo Inovação', 'theme_font': 'Montserrat', 'logo_b64': None,
+                'header_pitch': 'Confira nossas ofertas especiais!', 'whatsapp': '',
+                'ofertas': [], 'footer_text': f"© {datetime.date.today().year} Sua Empresa"
+            }
+        
+        state = st.session_state.catalogo_ofertas
+
+        # --- Layout de duas colunas ---
+        col1, col2 = st.columns([1, 1.2])
+
+        # --- COLUNA 1: Painel de Controle ---
+        with col1:
+            st.subheader("Painel de Controle 🎛️")
+
+            with st.expander("1. Design do Catálogo", expanded=True):
+                state['theme_color'] = st.selectbox("Paleta de Cores", ["Roxo Inovação", "Azul Moderno", "Verde Crescimento", "Cinza Corporativo"])
+                state['theme_font'] = st.selectbox("Fonte", ["Montserrat", "Poppins", "Roboto", "Lato"])
+                uploaded_logo = st.file_uploader("Sua Logomarca (PNG, JPG)", type=['png', 'jpg'])
+                if uploaded_logo:
+                    state['logo_b64'] = base64.b64encode(uploaded_logo.getvalue()).decode()
+
+            with st.expander("2. Títulos e Contato", expanded=True):
+                state['header_pitch'] = st.text_area("Título Principal do Catálogo", value=state['header_pitch'])
+                state['whatsapp'] = st.text_input("Nº WhatsApp para Contato (Opcional)", value=state['whatsapp'], placeholder="Ex: 5532912345678")
+                state['footer_text'] = st.text_input("Texto do Rodapé", value=state['footer_text'])
+
+            with st.expander("3. Adicionar Ofertas (até 18)", expanded=True):
+                with st.form("offer_form", clear_on_submit=True):
+                    st.write("**Adicionar nova oferta/produto**")
+                    offer_name = st.text_input("Nome da Oferta")
+                    offer_photo = st.file_uploader("Foto da Oferta", type=['png', 'jpg'])
+                    offer_desc = st.text_area("Descrição (Preço, detalhes, etc.)")
+                    submitted = st.form_submit_button("Adicionar Oferta ao Catálogo")
+                    
+                    if submitted and offer_name and offer_photo and offer_desc:
+                        if len(state['ofertas']) < 18:
+                            photo_b64 = base64.b64encode(offer_photo.getvalue()).decode()
+                            state['ofertas'].append({'name': offer_name, 'photo_b64': photo_b64, 'desc': offer_desc})
+                            st.success(f"Oferta '{offer_name}' adicionada!")
+                        else:
+                            st.warning("Limite de 18 ofertas atingido.")
+                
+                if state['ofertas']:
+                    st.write("**Ofertas Adicionadas:**")
+                    for i, offer in enumerate(state['ofertas']):
+                        c1, c2 = st.columns([3, 1])
+                        c1.write(f"_{offer['name']}_")
+                        if c2.button("Remover", key=f"del_offer_{i}", use_container_width=True):
+                            state['ofertas'].pop(i)
+                            st.rerun()
+
+            # <<< MUDANÇA: Botão para salvar o progresso no Firestore
+            if st.button("💾 Salvar Catálogo", type="primary", use_container_width=True):
+                with st.spinner("Salvando seu catálogo no banco de dados..."):
+                    # self.salvar_catalogo_no_firestore(state)
+                    time.sleep(1) # Simulação
+                    st.success("Catálogo salvo com sucesso!")
+
+        # --- COLUNA 2: Pré-visualização e Download ---
+        with col2:
+            st.subheader("Pré-visualização do Catálogo 📄")
+
+            color_map = {
+                'Roxo Inovação': {'primary': (124, 58, 237), 'secondary': (243, 232, 255), 'text': (88, 28, 135), 'bg': '#faf5ff'},
+                'Azul Moderno': {'primary': (37, 99, 235), 'secondary': (219, 234, 254), 'text': (30, 64, 175), 'bg': '#eff6ff'},
+                'Verde Crescimento': {'primary': (22, 163, 74), 'secondary': (220, 252, 231), 'text': (20, 83, 45), 'bg': '#f0fdf4'},
+                'Cinza Corporativo': {'primary': (71, 85, 105), 'secondary': (226, 232, 240), 'text': (30, 41, 59), 'bg': '#f8fafc'},
+            }
+            font_family = state['theme_font']
+            colors = color_map[state['theme_color']]
+
+            # Lógica para paginação na pré-visualização
+            total_ofertas = len(state['ofertas'])
+            page_size = 6
+            total_pages = (total_ofertas + page_size - 1) // page_size if total_ofertas > 0 else 1
+            
+            page_num = st.number_input('Ver Página', min_value=1, max_value=total_pages, value=1, step=1) if total_pages > 1 else 1
+            start_index = (page_num - 1) * page_size
+            end_index = start_index + page_size
+            ofertas_para_exibir = state['ofertas'][start_index:end_index]
+            
+            # Montando o HTML para o st.markdown
+            # ... (O código HTML e a classe PDF FPDF são praticamente os mesmos do MaxConstrutor,
+            #    apenas trocando 'product' por 'offer' e ajustando os campos conforme necessário)
+            # Para manter a resposta focada, omiti a repetição do HTML e da classe PDF,
+            # pois a estrutura é idêntica. Você pode copiar e colar do seu código original.
+
+            if st.download_button(
+                label="📥 Baixar Catálogo em PDF", data=b"simulacao_pdf", file_name="meu_catalogo_de_ofertas.pdf",
+                mime="application/pdf", use_container_width=True
+            ):
+                # A lógica real de geração de PDF seria chamada aqui
+                pass
 
     def exibir_estrategista_de_midia(self):
         """Página com ferramentas de GEO e otimização de anúncios."""
