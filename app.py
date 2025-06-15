@@ -593,8 +593,126 @@ Equipe MaxMarketing Total
                 # A lógica real de geração de PDF seria chamada aqui
                 pass
 
-    def exibir_estrategista_de_midia(self):
-        """Página com ferramentas de GEO e otimização de anúncios."""
+   def exibir_estrategista_de_midia(self):
+        """
+        Página com um conjunto de ferramentas para análise e planejamento de mídia paga e orgânica,
+        incluindo GEO (Generative Engine Optimization) e otimização de anúncios.
+        """
         st.header("📊 Estrategista de Mídia Digital")
-        st.info("Funcionalidade em desenvolvimento. Otimize sua presença com GEO e planeje seus anúncios.")
-        pass
+        st.markdown("Analise sua presença online, planeje seus investimentos em anúncios e otimize seus criativos com o poder da IA.")
+
+        # Criação das abas para organizar as ferramentas
+        tab1, tab2, tab3 = st.tabs(["📈 Plano de Mídia", "🌐 Análise GEO", "✍️ Otimizador de Anúncios"])
+
+        # --- Aba 1: Plano de Mídia (Adaptado do seu Estrategista) ---
+        with tab1:
+            st.subheader("Planejador de Orçamento e Canais")
+            st.write("Defina seu objetivo e orçamento para receber uma recomendação estratégica de investimento.")
+
+            with st.form("media_plan_form"):
+                objetivo = st.selectbox(
+                    "Qual o principal objetivo do seu investimento?",
+                    ["Aumentar as vendas online", "Levar mais clientes à loja física", "Gerar mais contatos (leads)", "Fortalecer a marca"]
+                )
+                orcamento = st.number_input("Qual o seu orçamento total de mídia (R$)?", min_value=100, value=500, step=100)
+                duracao = st.slider("A campanha durará quantos dias?", 7, 90, 15)
+                
+                submitted = st.form_submit_button("🧠 Montar Plano de Mídia")
+                if submitted:
+                    with st.spinner("Max está analisando os melhores canais para o seu objetivo e orçamento..."):
+                        # Lógica para chamar a IA e gerar um plano de mídia.
+                        # SIMULAÇÃO:
+                        st.session_state['media_plan_result'] = f"""
+                        #### 🎯 Plano de Ação para '{objetivo}'
+
+                        Com um orçamento de **R$ {orcamento:.2f}** para **{duracao} dias** (aprox. R$ {orcamento/duracao:.2f}/dia), esta é a minha recomendação estratégica:
+
+                        **1. Alocação de Orçamento:**
+                        * **60% (R$ {orcamento*0.6:.2f}) em Meta Ads (Instagram/Facebook):** Ideal para segmentação precisa do seu público local e para gerar desejo com criativos visuais. Foco em anúncios de tráfego e conversão.
+                        * **40% (R$ {orcamento*0.4:.2f}) em Google Ads (Rede de Pesquisa):** Essencial para capturar a demanda de pessoas que já estão procurando ativamente pelo seu produto/serviço.
+
+                        **2. Foco do Público-Alvo:**
+                        * **Meta Ads:** Criar um público de 'Interesses' baseado no seu briefing e um público de 'Remarketing' para re-impactar quem visitou seu site ou perfil.
+                        * **Google Ads:** Focar em palavras-chave de 'cauda longa' e com intenção de compra, como "melhor [seu produto] em [sua cidade]".
+
+                        **3. Próximo Passo Sugerido:**
+                        * Use o **Otimizador de Anúncios** (na próxima aba) para criar os textos e headlines para esta campanha.
+                        """
+            
+            if 'media_plan_result' in st.session_state:
+                st.markdown("---")
+                st.subheader("✅ Seu Plano de Mídia Estratégico:")
+                st.markdown(st.session_state['media_plan_result'], unsafe_allow_html=True)
+
+
+        # --- Aba 2: Análise GEO (Nova funcionalidade) ---
+        with tab2:
+            st.subheader("Analisador de Presença Local (GEO)")
+            st.write("Otimize seu conteúdo para ser encontrado por IAs e mecanismos de busca quando clientes locais procurarem por você.")
+
+            with st.form("geo_analysis_form"):
+                st.write("Vamos analisar e otimizar sua principal página de serviço.")
+                url_pagina = st.text_input("Cole a URL da sua principal página de produto/serviço:", placeholder="https://seusite.com.br/servico-principal")
+                
+                submitted_geo = st.form_submit_button("🔍 Analisar para GEO")
+                if submitted_geo and url_pagina:
+                    with st.spinner("Max está lendo sua página e identificando pontos de otimização para GEO..."):
+                        # Lógica para a IA analisar a URL
+                        # SIMULAÇÃO:
+                        st.session_state['geo_result'] = """
+                        #### ✅ Análise GEO da sua página:
+
+                        **Pontos Fortes:**
+                        * O título da página menciona seu serviço principal.
+                        * As imagens têm texto alternativo, o que ajuda na acessibilidade.
+
+                        **Oportunidades de Melhoria para IAs:**
+                        1.  **Crie uma seção de FAQ:** Responda diretamente às 5 perguntas mais comuns sobre seu serviço. IAs adoram o formato de Pergunta e Resposta. Sugestão de pergunta: "Qual o preço do [seu serviço]?"
+                        2.  **Adicione Dados Estruturados:** Inclua o endereço e o telefone da sua empresa de forma clara e explícita no rodapé da página.
+                        3.  **Use Tópicos Locais:** Adicione um parágrafo sobre a história da sua empresa na sua cidade ou como seu serviço atende especificamente à comunidade local.
+                        """
+
+            if 'geo_result' in st.session_state:
+                st.markdown("---")
+                st.subheader("💡 Recomendações de Otimização GEO:")
+                st.markdown(st.session_state['geo_result'])
+
+        # --- Aba 3: Otimizador de Anúncios (Adaptado do seu Especialista Google) ---
+        with tab3:
+            st.subheader("Criador e Otimizador de Anúncios para Google")
+            st.write("Crie rapidamente os textos para seus anúncios na Rede de Pesquisa do Google.")
+
+            with st.form("ads_creator_form"):
+                termo_busca = st.text_input("O que seu cliente ideal digitaria no Google para te achar?", placeholder="Ex: Sapataria artesanal em Juiz de Fora")
+                
+                submitted_ads = st.form_submit_button("✍️ Gerar Textos do Anúncio")
+                if submitted_ads and termo_busca:
+                    with st.spinner("Max está criando headlines e descrições de alta conversão..."):
+                        # Lógica para chamar a IA e gerar os anúncios
+                        # SIMULAÇÃO:
+                        st.session_state['ads_result'] = f"""
+                        #### ✅ Textos para Anúncios de Pesquisa:
+
+                        **Sugestão de Palavras-Chave:**
+                        * `{termo_busca}`
+                        * `loja de sapatos artesanais juiz de fora`
+                        * `onde comprar sapato de couro em jf`
+
+                        ---
+                        **Opção de Anúncio 1 (Foco em Qualidade):**
+                        * **Título 1:** Sapatos Artesanais em Juiz de Fora
+                        * **Título 2:** Couro Legítimo e Durabilidade
+                        * **Título 3:** Qualidade em Cada Detalhe
+                        * **Descrição:** Conheça nossa coleção exclusiva de sapatos feitos à mão. Conforto e estilo que duram. Visite nossa loja no centro!
+
+                        **Opção de Anúncio 2 (Foco em Exclusividade):**
+                        * **Título 1:** {termo_busca.title()}
+                        * **Título 2:** Modelos Únicos e Exclusivos
+                        * **Título 3:** Atendimento Personalizado
+                        * **Descrição:** Cansado do mesmo? Encontre sapatos com personalidade e design autoral. Estoque limitado. Garanta já o seu par!
+                        """
+
+            if 'ads_result' in st.session_state:
+                st.markdown("---")
+                st.subheader("📝 Seus Anúncios para o Google:")
+                st.markdown(st.session_state['ads_result'])
