@@ -78,3 +78,27 @@ except KeyError as e:
     st.stop() # Interrompe a execução do app se uma chave essencial estiver faltando
 
 st.success("Constantes e secrets carregados com sucesso!")
+# ==============================================================================
+# 3. FUNÇÕES AUXILIARES GLOBAIS
+# ==============================================================================
+
+# Adicionado o st.cache_data para otimizar o carregamento da imagem.
+# O Streamlit guardará o resultado em cache e não precisará reler o arquivo do disco toda vez.
+@st.cache_data
+def convert_image_to_base64(image_name):
+    """Lê um arquivo de imagem e o converte para uma string Base64."""
+    try:
+        image_path = get_asset_path(image_name)
+        if os.path.exists(image_path):
+            with open(image_path, "rb") as image_file:
+                return base64.b64encode(image_file.read()).decode()
+        else:
+            # Mostra um aviso no app se a imagem não for encontrada.
+            st.warning(f"Arquivo de imagem não encontrado: {image_path}")
+            return None
+    except Exception as e:
+        # Mostra um erro no app se ocorrer outro problema.
+        st.error(f"Erro ao converter a imagem '{image_name}': {e}")
+        return None
+
+st.success("Funções auxiliares carregadas com sucesso!")
