@@ -191,3 +191,88 @@ def get_current_user_status():
     return False, None, None
 
 st.success("Serviços de autenticação e IA carregados com sucesso!")
+# ==============================================================================
+# 5. CLASSE PRINCIPAL DA APLICAÇÃO
+# ==============================================================================
+class MaxMarketingApp:
+    def __init__(self, llm_instance, db_firestore_instance):
+        """Inicializa a aplicação com as conexões para a IA e o Banco de Dados."""
+        self.llm = llm_instance
+        self.db = db_firestore_instance
+
+    # --- MÉTODO DE ONBOARDING E BRIEFING ESTRATÉGICO ---
+    def exibir_briefing_estrategico(self):
+        """
+        Exibe um formulário para o usuário preencher o DNA de marketing da sua empresa.
+        Essas informações serão o "prompt invertido" principal para todas as ferramentas.
+        """
+        st.header("🚀 Briefing Estratégico do MaxMarketing Total")
+        st.markdown("Para que nossa IA crie campanhas e conteúdos que realmente vendem, precisamos entender a fundo o seu negócio. Suas respostas aqui servirão como base para todas as criações futuras.")
+        
+        # Vamos usar um dicionário no session_state para guardar os dados do form
+        if 'briefing_data' not in st.session_state:
+            st.session_state.briefing_data = {}
+
+        with st.form(key="briefing_form"):
+            st.subheader("1. Identidade da Empresa")
+            st.session_state.briefing_data['company_name'] = st.text_input("Nome da Empresa:", placeholder="Ex: Sapataria do Zé")
+            st.session_state.briefing_data['pitch'] = st.text_area("Descreva seu negócio em uma frase (seu pitch):", placeholder="Ex: Vendemos sapatos de couro artesanais para o público masculino em Juiz de Fora.")
+            st.session_state.briefing_data['personalidade'] = st.radio("Qual adjetivo melhor descreve a personalidade da sua marca?",
+                                                                        ('Divertida e Jovem', 'Séria e Corporativa', 'Acolhedora e Amigável', 'Sofisticada e Premium', 'Técnica e Especialista'))
+
+            st.subheader("2. Produtos & Proposta de Valor")
+            st.session_state.briefing_data['produtos'] = st.text_area("Liste seus 3 principais produtos ou serviços:")
+            st.session_state.briefing_data['diferencial'] = st.text_input("Qual é o seu principal diferencial competitivo?", placeholder="Ex: Entrega mais rápida da cidade, único com garantia de 2 anos...")
+
+            st.subheader("3. O Cliente Ideal (Público-Alvo)")
+            st.session_state.briefing_data['cliente_ideal'] = st.text_area("Descreva seu cliente ideal:", placeholder="Homens de 30-50 anos, que valorizam qualidade e durabilidade...")
+            st.session_state.briefing_data['dor_cliente'] = st.text_input("Qual a principal 'dor' ou necessidade do seu cliente que sua empresa resolve?")
+
+            st.subheader("4. Objetivos de Marketing")
+            st.session_state.briefing_data['objetivo_principal'] = st.radio("Qual é o seu OBJETIVO Nº 1 com marketing digital?",
+                                                                            ('Aumentar seguidores e engajamento', 'Gerar mais leads (contatos)', 'Aumentar as vendas diretas', 'Fortalecer a marca'))
+
+            submitted = st.form_submit_button("✅ Salvar Briefing e Começar a Criar!")
+            if submitted:
+                with st.spinner("Salvando o DNA de marketing da sua empresa..."):
+                    try:
+                        user_uid = st.session_state.get('user_uid')
+                        if user_uid:
+                            # Cria ou atualiza um documento com o ID da empresa do usuário
+                            company_ref = self.db.collection(COMPANY_COLLECTION).document(user_uid)
+                            company_ref.set(st.session_state.briefing_data, merge=True) # merge=True permite atualizar sem apagar dados antigos
+                            
+                            # Marca no perfil do usuário que o briefing foi concluído
+                            user_ref = self.db.collection(USER_COLLECTION).document(user_uid)
+                            user_ref.update({"briefing_completed": True})
+
+                            st.success("Briefing salvo! Estamos prontos para decolar.")
+                            time.sleep(2)
+                            # Limpa os dados do formulário da memória da sessão
+                            del st.session_state['briefing_data']
+                            st.rerun()
+                        else:
+                            st.error("Erro: Usuário não autenticado. Não foi possível salvar o briefing.")
+                    except Exception as e:
+                        st.error(f"Ocorreu um erro ao salvar o briefing: {e}")
+
+    # --- PLACEHOLDERS PARA AS NOVAS FUNCIONALIDADES ---
+    
+    def exibir_criador_de_posts(self):
+        """Página para criar posts individuais para diversas plataformas."""
+        st.header("✍️ Criador de Posts")
+        st.info("Funcionalidade em desenvolvimento. Aqui você poderá criar posts para todas as suas redes.")
+        # Lógica para menu suspenso, prompt invertido específico do post, etc.
+        pass
+
+    def exibir_criador_de_campanhas(self):
+        """Página para criar campanhas completas com múltiplos criativos."""
+        st.header("📣 Criador de Campanhas")
+        st.info("Funcionalidade em desenvolvimento. Crie campanhas integradas para atingir seus objetivos.")
+        pass
+
+    def exibir_estrategista_de_midia(self):
+        """Página com ferramentas de GEO e otimização de anúncios."""
+        st.header("📊 Estrategista de Mídia Digital")
+        st.info("Funcionalidade em desenvolvimento. Otimize sua presença com GEO e planeje seus anúncios.")
+        pass
