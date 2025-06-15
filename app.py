@@ -256,7 +256,7 @@ class MaxMarketingApp:
                     except Exception as e:
                         st.error(f"Ocorreu um erro ao salvar o briefing: {e}")
 
-    # --- PLACEHOLDERS PARA AS NOVAS FUNCIONALIDADES ---
+    # --- PLACEHOLDERS PARA AS FUNCIONALIDADES ---
     
     def exibir_criador_de_posts(self):
         """Página para criar posts individuais para diversas plataformas."""
@@ -269,6 +269,12 @@ class MaxMarketingApp:
         """Página para criar campanhas completas com múltiplos criativos."""
         st.header("📣 Criador de Campanhas")
         st.info("Funcionalidade em desenvolvimento. Crie campanhas integradas para atingir seus objetivos.")
+        pass
+
+    def exibir_construtor_de_ofertas(self): # <<< NOVO PLACEHOLDER ADICIONADO
+        """Página para criar um catálogo de ofertas/produtos."""
+        st.header("🛍️ Construtor de Ofertas")
+        st.info("Funcionalidade em desenvolvimento. Crie seu catálogo de produtos e ofertas para compartilhar.")
         pass
 
     def exibir_estrategista_de_midia(self):
