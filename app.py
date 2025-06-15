@@ -810,3 +810,87 @@ def exibir_login_e_registro():
                             st.success("Conta criada! Volte para a aba 'Entrar' para fazer seu primeiro login.")
                     else:
                         st.warning("Por favor, preencha todos os campos corretamente.")
+# ==============================================================================
+# 8. ESTRUTURA PRINCIPAL E EXECUÇÃO DO APP
+# ==============================================================================
+
+def main():
+    """
+    Função principal que orquestra todo o aplicativo, controlando o que é exibido
+    com base no estado de autenticação e no progresso do usuário (briefing).
+    """
+    # Verifica se as conexões com Firebase e LLM foram bem-sucedidas
+    if not all([pb_auth_client, firestore_db, llm]):
+        st.error("Falha crítica na inicialização de um ou mais serviços. Verifique os segredos e a conexão.")
+        st.stop()
+
+    # Verifica o status de autenticação do usuário na sessão atual
+    user_is_authenticated, user_uid, user_email = get_current_user_status()
+
+    if user_is_authenticated:
+        # --- FLUXO DO USUÁRIO LOGADO ---
+
+        # Inicializa a nossa classe principal da aplicação
+        # (Isso garante que temos um 'agente' pronto para chamar os métodos de exibição)
+        if 'app_instance' not in st.session_state:
+            st.session_state.app_instance = MaxMarketingApp(llm, firestore_db)
+        app = st.session_state.app_instance
+
+        # --- Sidebar (Menu Lateral) ---
+        with st.sidebar:
+            st.image(get_asset_path('max_marketing_total_logo.png'), width=150)
+            st.title(APP_NAME)
+            st.markdown("---")
+            st.write(f"Logado como:")
+            st.caption(user_email)
+            if st.button("Logout", use_container_width=True):
+                st.session_state.clear()
+                st.rerun()
+            
+            # <<< MUDANÇA: Assinatura adicionada no final da sidebar
+            st.markdown("---")
+            st.caption("By Yaakov Israel | Ruach AI LTDA | Gemini AI")
+
+        # --- LÓGICA DE EXIBIÇÃO PRINCIPAL ---
+        try:
+            user_doc = firestore_db.collection(USER_COLLECTION).document(user_uid).get()
+            user_data = user_doc.to_dict() if user_doc.exists else {}
+        except Exception as e:
+            st.error(f"Erro ao buscar dados do seu perfil: {e}")
+            st.stop()
+
+        # <<< MUDANÇA: Novo fluxo baseado no preenchimento do briefing
+        # Verificamos se o usuário já completou o briefing estratégico
+        if not user_data.get("briefing_completed", False):
+            app.exibir_briefing_estrategico()
+        else:
+            # Se já completou, mostra o menu de ferramentas de marketing
+            st.sidebar.markdown("### Ferramentas de Marketing")
+            
+            # <<< MUDANÇA: Novo menu simplificado
+            menu_opcoes = {
+                "✍️ Criador de Posts": app.exibir_criador_de_posts,
+                "📣 Criador de Campanhas": app.exibir_criador_de_campanhas,
+                "🛍️ Construtor de Ofertas": app.exibir_construtor_de_ofertas,
+                "📊 Estrategista de Mídia": app.exibir_estrategista_de_midia
+            }
+            
+            escolha = st.sidebar.radio(
+                "Selecione uma ferramenta:",
+                options=list(menu_opcoes.keys())
+            )
+            
+            # Executa a função correspondente à escolha do menu
+            menu_opcoes[escolha]()
+
+    else:
+        # --- FLUXO DO USUÁRIO NÃO LOGADO ---
+        # <<< MUDANÇA: Chamando a função com o nome que atualizamos
+        if st.session_state.get('show_login_form', False):
+            exibir_login_e_registro() 
+        else:
+            exibir_pagina_de_entrada()
+
+# Ponto de entrada padrão para executar o aplicativo
+if __name__ == "__main__":
+    main()
